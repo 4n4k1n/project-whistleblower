@@ -140,21 +140,36 @@
         }
 
         function loadStudentProjects(login) {
+            const projectSelect = document.getElementById('project');
+            projectSelect.innerHTML = '<option value="">Select a project...</option>';
+            
+            // Always show project selection
+            document.getElementById('projectSelection').classList.remove('hidden');
+            
             fetch(`/api/students/${login}/projects`)
                 .then(response => response.json())
                 .then(data => {
-                    const projectSelect = document.getElementById('project');
-                    projectSelect.innerHTML = '<option value="">Select a project...</option>';
-                    
                     if (data.projects && data.projects.length > 0) {
                         data.projects.forEach(project => {
                             projectSelect.innerHTML += `<option value="${project}">${project}</option>`;
                         });
-                        document.getElementById('projectSelection').classList.remove('hidden');
+                    } else {
+                        // Add common project options if none found
+                        const commonProjects = ['libft', 'get_next_line', 'ft_printf', 'born2beroot', 'so_long', 'pipex', 'push_swap', 'minishell', 'philosophers', 'cub3d', 'ft_containers', 'webserv', 'inception', 'ft_transcendence'];
+                        commonProjects.forEach(project => {
+                            projectSelect.innerHTML += `<option value="${project}">${project}</option>`;
+                        });
+                        projectSelect.innerHTML += '<option value="other">Other (specify in explanation)</option>';
                     }
                 })
                 .catch(error => {
                     console.error('Projects error:', error);
+                    // Add common projects as fallback
+                    const commonProjects = ['libft', 'get_next_line', 'ft_printf', 'born2beroot', 'so_long', 'pipex', 'push_swap', 'minishell', 'philosophers', 'cub3d', 'ft_containers', 'webserv', 'inception', 'ft_transcendence'];
+                    commonProjects.forEach(project => {
+                        projectSelect.innerHTML += `<option value="${project}">${project}</option>`;
+                    });
+                    projectSelect.innerHTML += '<option value="other">Other (specify in explanation)</option>';
                 });
         }
 
