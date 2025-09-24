@@ -118,7 +118,12 @@ func (h *Handler) CreateReport(c *gin.Context) {
 
 	user, err := h.db.GetUserByLogin(userLogin)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		// Debug: provide more info about the issue
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in database", 
+			"login_from_cookie": userLogin,
+			"hint": "Try logging out and logging back in via /login",
+		})
 		return
 	}
 
@@ -292,6 +297,33 @@ func (h *Handler) GetUserStats(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"total_users": count,
+	})
+}
+
+func (h *Handler) GetCurrentUser(c *gin.Context) {
+	userLogin, err := c.Cookie("user_login")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
+	user, err := h.db.GetUserByLogin(userLogin)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"authenticated": true,
+			"login_from_cookie": userLogin,
+			"in_database": false,
+			"error": "User not in database - need to re-login via OAuth",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"authenticated": true,
+		"login": user.Login,
+		"display_name": user.DisplayName,
+		"email": user.Email,
+		"in_database": true,
 	})
 }
 
