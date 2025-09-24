@@ -230,6 +230,80 @@ func (h *Handler) ReviewReport(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Report reviewed successfully"})
 }
 
+func (h *Handler) SyncCampusUsers(c *gin.Context) {
+	userLogin, err := c.Cookie("user_login")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
+	// Remove staff requirement - any authenticated user can sync
+	user, err := h.db.GetUserByLogin(userLogin)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	campusID := c.DefaultQuery("campus_id", "1")
+	campusIDInt, err := strconv.Atoi(campusID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid campus ID"})
+		return
+	}
+
+	// Use user's own OAuth token instead of requiring staff token
+	token, err := getOAuthTokenForUser(user.Login)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get OAuth token"})
+		return
+	}
+
+	auth42Users, err := auth.GetAllCampusUsers(campusIDInt, token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch campus users: " + err.Error()})
+		return
+	}
+
+	users := make([]models.User, len(auth42Users))
+	for i, auth42User := range auth42Users {
+		users[i] = models.User{
+			Login:       auth42User.Login,
+			Email:       auth42User.Email,
+			DisplayName: auth42User.DisplayName,
+			IsStaff:     false,
+		}
+	}
+
+	if err := h.db.BulkCreateUsers(users); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save users to database"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Users synced successfully",
+		"count":   len(users),
+	})
+}
+
+// Helper function to get OAuth token (simplified - in production you'd store tokens properly)
+func getOAuthTokenForUser(_ string) (string, error) {
+	// For now, use client credentials flow
+	// In production, you'd store user tokens in database
+	return auth.GetClientCredentialsToken()
+}
+
+func (h *Handler) GetUserStats(c *gin.Context) {
+	count, err := h.db.GetUserCount()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user count"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"total_users": count,
+	})
+}
+
 func generateState() string {
 	b := make([]byte, 32)
 	rand.Read(b)

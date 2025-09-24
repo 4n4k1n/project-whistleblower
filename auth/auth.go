@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"whistleblower/models"
@@ -137,4 +138,100 @@ func GetStudentProjects(login string, token string) ([]string, error) {
 	}
 
 	return projects, nil
+}
+
+func GetCampusUsers(campusID int, token string, page int, perPage int) ([]models.Auth42User, error) {
+	client := &http.Client{}
+	// Use /v2/users with campus filter instead of /v2/campus_users (which requires staff access)
+	url := fmt.Sprintf("https://api.intra.42.fr/v2/users?filter[campus_id]=%d&page=%d&per_page=%d", campusID, page, perPage)
+	
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	
+	req.Header.Set("Authorization", "Bearer "+token)
+	
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get campus users, status: %d", resp.StatusCode)
+	}
+
+	var users []models.Auth42User
+	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func GetAllCampusUsers(campusID int, token string) ([]models.Auth42User, error) {
+	var allUsers []models.Auth42User
+	page := 1
+	perPage := 100
+
+	for {
+		users, err := GetCampusUsers(campusID, token, page, perPage)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(users) == 0 {
+			break
+		}
+
+		allUsers = append(allUsers, users...)
+
+		if len(users) < perPage {
+			break
+		}
+
+		page++
+	}
+
+	return allUsers, nil
+}
+
+func GetClientCredentialsToken() (string, error) {
+	client := &http.Client{}
+	
+	data := fmt.Sprintf(`{
+		"grant_type": "client_credentials",
+		"client_id": "%s",
+		"client_secret": "%s"
+	}`, os.Getenv("OAUTH_42_CLIENT_ID"), os.Getenv("OAUTH_42_CLIENT_SECRET"))
+	
+	req, err := http.NewRequest("POST", "https://api.intra.42.fr/oauth/token", 
+		strings.NewReader(data))
+	if err != nil {
+		return "", err
+	}
+	
+	req.Header.Set("Content-Type", "application/json")
+	
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get token, status: %d", resp.StatusCode)
+	}
+
+	var tokenResponse struct {
+		AccessToken string `json:"access_token"`
+		TokenType   string `json:"token_type"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResponse); err != nil {
+		return "", err
+	}
+
+	return tokenResponse.AccessToken, nil
 }

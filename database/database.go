@@ -218,3 +218,54 @@ func (db *DB) UpdateUserReportStats(userID int) error {
 
 	return tx.Commit()
 }
+
+func (db *DB) BulkCreateUsers(users []models.User) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(`INSERT OR REPLACE INTO users (login, email, display_name, is_staff) VALUES (?, ?, ?, ?)`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, user := range users {
+		_, err := stmt.Exec(user.Login, user.Email, user.DisplayName, user.IsStaff)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (db *DB) GetUserCount() (int, error) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+	return count, err
+}
+
+func (db *DB) GetAllUsers() ([]models.User, error) {
+	query := `SELECT id, login, email, display_name, is_staff, created_at FROM users ORDER BY login`
+	
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.ID, &user.Login, &user.Email, &user.DisplayName, &user.IsStaff, &user.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}

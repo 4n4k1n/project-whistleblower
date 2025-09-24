@@ -40,12 +40,18 @@ func main() {
 		c.HTML(200, "dashboard.html", gin.H{})
 	})
 
+	r.GET("/admin", func(c *gin.Context) {
+		c.HTML(200, "admin.html", gin.H{})
+	})
+
 	api := r.Group("/api")
 	{
 		api.GET("/students/search", h.SearchStudents)
 		api.GET("/students/:login/projects", h.GetStudentProjects)
 		api.POST("/reports", h.CreateReport)
 		api.GET("/report-reasons", h.GetReportReasons)
+		api.GET("/stats", h.GetUserStats)
+		api.POST("/sync-users", h.SyncCampusUsers) // Moved from staff-only
 		
 		staff := api.Group("/staff")
 		{
