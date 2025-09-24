@@ -3,3 +3,4 @@ go.sum
 server.log
 whistleblower
 whistleblower.db
+*.log

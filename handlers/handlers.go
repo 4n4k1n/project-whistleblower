@@ -75,13 +75,14 @@ func (h *Handler) SearchStudents(c *gin.Context) {
 		return
 	}
 
-	token, err := c.Cookie("auth_token")
+	_, err := c.Cookie("user_login")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
 		return
 	}
 
-	results, err := auth.SearchStudents(query, token)
+	// Search in local database instead of 42 API for better performance
+	results, err := h.db.SearchUsers(query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search students"})
 		return

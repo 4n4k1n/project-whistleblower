@@ -269,3 +269,28 @@ func (db *DB) GetAllUsers() ([]models.User, error) {
 
 	return users, nil
 }
+
+func (db *DB) SearchUsers(query string) ([]models.StudentSearchResult, error) {
+	sqlQuery := `SELECT login, email, display_name FROM users 
+		WHERE login LIKE ? OR display_name LIKE ? OR email LIKE ? 
+		ORDER BY login LIMIT 20`
+	
+	searchPattern := "%" + query + "%"
+	rows, err := db.Query(sqlQuery, searchPattern, searchPattern, searchPattern)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []models.StudentSearchResult
+	for rows.Next() {
+		var result models.StudentSearchResult
+		err := rows.Scan(&result.Login, &result.Email, &result.DisplayName)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+	}
+
+	return results, nil
+}
