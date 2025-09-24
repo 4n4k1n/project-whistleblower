@@ -75,3 +75,12 @@ type Auth42User struct {
 	Email       string `json:"email"`
 	DisplayName string `json:"displayname"`
 }
+
+type ProjectStats struct {
+	ProjectName    string `json:"project_name"`
+	StudentLogin   string `json:"student_login"`
+	ReportCount    int    `json:"report_count"`
+	ApprovedCount  int    `json:"approved_count"`
+	RejectedCount  int    `json:"rejected_count"`
+	PendingCount   int    `json:"pending_count"`
+}

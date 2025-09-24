@@ -59,6 +59,14 @@
                 </div>
             </div>
 
+            <!-- Most Reported Projects -->
+            <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Most Reported Projects</h3>
+                    <div id="projectStats">Loading...</div>
+                </div>
+            </div>
+
             <!-- Pending Reports -->
             <div class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="px-4 py-5 sm:p-6">
@@ -73,6 +81,7 @@
         // Load initial data
         document.addEventListener('DOMContentLoaded', function() {
             loadUserStats();
+            loadProjectStats();
             loadPendingReports();
         });
 
@@ -89,6 +98,81 @@
                 .catch(error => {
                     document.getElementById('userStats').innerHTML = 
                         '<div class="text-red-600">Error loading user statistics</div>';
+                });
+        }
+
+        function loadProjectStats() {
+            fetch('/api/staff/project-stats')
+                .then(response => response.json())
+                .then(data => {
+                    const statsDiv = document.getElementById('projectStats');
+                    
+                    if (data.projects && data.projects.length > 0) {
+                        statsDiv.innerHTML = `
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Project
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Student
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Total Reports
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Pending
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Approved
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Rejected
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        ${data.projects.map(project => `
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    ${project.project_name}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    ${project.student_login}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                        project.report_count >= 5 ? 'bg-red-100 text-red-800' : 
+                                                        project.report_count >= 3 ? 'bg-yellow-100 text-yellow-800' : 
+                                                        'bg-blue-100 text-blue-800'
+                                                    }">
+                                                        ${project.report_count}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    ${project.pending_count}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">
+                                                    ${project.approved_count}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">
+                                                    ${project.rejected_count}
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    } else {
+                        statsDiv.innerHTML = '<div class="text-gray-500">No project reports found</div>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('projectStats').innerHTML = 
+                        '<div class="text-red-600">Error loading project statistics</div>';
                 });
         }
 

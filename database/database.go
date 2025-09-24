@@ -294,3 +294,36 @@ func (db *DB) SearchUsers(query string) ([]models.StudentSearchResult, error) {
 
 	return results, nil
 }
+
+func (db *DB) GetMostReportedProjects() ([]models.ProjectStats, error) {
+	query := `SELECT 
+		project_name,
+		reported_student_login,
+		COUNT(*) as report_count,
+		COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_count,
+		COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_count,
+		COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count
+		FROM reports 
+		GROUP BY project_name, reported_student_login
+		ORDER BY COUNT(*) DESC, project_name ASC
+		LIMIT 50`
+	
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []models.ProjectStats
+	for rows.Next() {
+		var result models.ProjectStats
+		err := rows.Scan(&result.ProjectName, &result.StudentLogin, &result.ReportCount, 
+			&result.ApprovedCount, &result.RejectedCount, &result.PendingCount)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+	}
+
+	return results, nil
+}
