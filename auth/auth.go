@@ -142,8 +142,8 @@ func GetStudentProjects(login string, token string) ([]string, error) {
 
 func GetCampusUsers(campusID int, token string, page int, perPage int) ([]models.Auth42User, error) {
 	client := &http.Client{}
-	// Use /v2/users with campus filter instead of /v2/campus_users (which requires staff access)
-	url := fmt.Sprintf("https://api.intra.42.fr/v2/users?filter[campus_id]=%d&page=%d&per_page=%d", campusID, page, perPage)
+	// Use /v2/campus/{id}/users which works with client credentials
+	url := fmt.Sprintf("https://api.intra.42.fr/v2/campus/%d/users?page=%d&per_page=%d", campusID, page, perPage)
 	
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

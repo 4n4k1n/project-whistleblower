@@ -231,18 +231,13 @@ func (h *Handler) ReviewReport(c *gin.Context) {
 }
 
 func (h *Handler) SyncCampusUsers(c *gin.Context) {
+	// Simplify authentication - just check if user is logged in via cookie
 	userLogin, err := c.Cookie("user_login")
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated - please login first"})
 		return
 	}
 
-	// Remove staff requirement - any authenticated user can sync
-	user, err := h.db.GetUserByLogin(userLogin)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-		return
-	}
 
 	campusID := c.DefaultQuery("campus_id", "1")
 	campusIDInt, err := strconv.Atoi(campusID)
@@ -251,10 +246,10 @@ func (h *Handler) SyncCampusUsers(c *gin.Context) {
 		return
 	}
 
-	// Use user's own OAuth token instead of requiring staff token
-	token, err := getOAuthTokenForUser(user.Login)
+	// Get OAuth token using client credentials (doesn't require user to be in DB)
+	token, err := auth.GetClientCredentialsToken()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get OAuth token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get OAuth token: " + err.Error()})
 		return
 	}
 
@@ -275,22 +270,17 @@ func (h *Handler) SyncCampusUsers(c *gin.Context) {
 	}
 
 	if err := h.db.BulkCreateUsers(users); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save users to database"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save users to database: " + err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Users synced successfully",
+		"message": fmt.Sprintf("Users synced successfully from campus %d", campusIDInt),
 		"count":   len(users),
+		"requested_by": userLogin,
 	})
 }
 
-// Helper function to get OAuth token (simplified - in production you'd store tokens properly)
-func getOAuthTokenForUser(_ string) (string, error) {
-	// For now, use client credentials flow
-	// In production, you'd store user tokens in database
-	return auth.GetClientCredentialsToken()
-}
 
 func (h *Handler) GetUserStats(c *gin.Context) {
 	count, err := h.db.GetUserCount()
