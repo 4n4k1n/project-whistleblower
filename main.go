@@ -57,6 +57,7 @@ func main() {
 			staff.GET("/reports", h.GetPendingReports)
 			staff.PUT("/reports/:id", h.ReviewReport)
 			staff.GET("/project-stats", h.GetProjectStats)
+			staff.POST("/bulk-project-action", h.BulkProjectAction)
 		}
 	}
 

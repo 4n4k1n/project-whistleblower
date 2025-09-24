@@ -327,3 +327,21 @@ func (db *DB) GetMostReportedProjects() ([]models.ProjectStats, error) {
 
 	return results, nil
 }
+
+func (db *DB) BulkUpdateProjectReports(studentLogin, projectName, status string, reviewerID int) (int, error) {
+	query := `UPDATE reports 
+		SET status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP 
+		WHERE reported_student_login = ? AND project_name = ? AND status = 'pending'`
+	
+	result, err := db.Exec(query, status, reviewerID, studentLogin, projectName)
+	if err != nil {
+		return 0, err
+	}
+	
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	
+	return int(rowsAffected), nil
+}

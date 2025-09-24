@@ -62,6 +62,12 @@ type ReviewReportRequest struct {
 	Status string `json:"status" binding:"required,oneof=approved rejected"`
 }
 
+type BulkProjectActionRequest struct {
+	StudentLogin string `json:"student_login" binding:"required"`
+	ProjectName  string `json:"project_name" binding:"required"`
+	Status       string `json:"status" binding:"required,oneof=approved rejected"`
+}
+
 type StudentSearchResult struct {
 	Login       string `json:"login"`
 	DisplayName string `json:"display_name"`

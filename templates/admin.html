@@ -131,6 +131,9 @@
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Rejected
                                             </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Actions
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -159,6 +162,22 @@
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">
                                                     ${project.rejected_count}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    ${project.pending_count > 0 ? `
+                                                        <div class="flex space-x-2">
+                                                            <button onclick="bulkProjectAction('${project.student_login}', '${project.project_name}', 'approved')" 
+                                                                    class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                                Approve All
+                                                            </button>
+                                                            <button onclick="bulkProjectAction('${project.student_login}', '${project.project_name}', 'rejected')" 
+                                                                    class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                                Reject All
+                                                            </button>
+                                                        </div>
+                                                    ` : `
+                                                        <span class="text-gray-400 text-xs">No pending</span>
+                                                    `}
                                                 </td>
                                             </tr>
                                         `).join('')}
@@ -281,6 +300,37 @@
             })
             .catch(error => {
                 alert('Error reviewing report');
+            });
+        }
+
+        function bulkProjectAction(studentLogin, projectName, status) {
+            if (!confirm(`Are you sure you want to ${status === 'approved' ? 'approve' : 'reject'} ALL pending reports for ${studentLogin} - ${projectName}?`)) {
+                return;
+            }
+
+            fetch('/api/staff/bulk-project-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    student_login: studentLogin,
+                    project_name: projectName,
+                    status: status
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    loadProjectStats(); // Reload project stats
+                    loadPendingReports(); // Reload pending reports
+                } else {
+                    alert('Error processing bulk action: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                alert('Error processing bulk action');
             });
         }
     </script>

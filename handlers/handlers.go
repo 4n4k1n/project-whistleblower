@@ -349,6 +349,37 @@ func (h *Handler) GetProjectStats(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"projects": projectStats})
 }
 
+func (h *Handler) BulkProjectAction(c *gin.Context) {
+	userLogin, err := c.Cookie("user_login")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
+	user, err := h.db.GetUserByLogin(userLogin)
+	if err != nil || !user.IsStaff {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Staff access required"})
+		return
+	}
+
+	var req models.BulkProjectActionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	affectedRows, err := h.db.BulkUpdateProjectReports(req.StudentLogin, req.ProjectName, req.Status, user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project reports"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": fmt.Sprintf("Successfully %s %d pending reports for %s - %s", req.Status, affectedRows, req.StudentLogin, req.ProjectName),
+		"affected_reports": affectedRows,
+	})
+}
+
 func (h *Handler) AdminPage(c *gin.Context) {
 	userLogin, err := c.Cookie("user_login")
 	if err != nil {
