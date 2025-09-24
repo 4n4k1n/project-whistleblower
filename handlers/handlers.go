@@ -327,6 +327,36 @@ func (h *Handler) GetCurrentUser(c *gin.Context) {
 	})
 }
 
+func (h *Handler) AdminPage(c *gin.Context) {
+	userLogin, err := c.Cookie("user_login")
+	if err != nil {
+		// Redirect to login if not authenticated
+		c.Redirect(302, "/login")
+		return
+	}
+
+	user, err := h.db.GetUserByLogin(userLogin)
+	if err != nil {
+		// Redirect to login if user not found in database
+		c.Redirect(302, "/login")
+		return
+	}
+
+	if !user.IsStaff {
+		// Show access denied page for non-staff users
+		c.HTML(403, "access_denied.html", gin.H{
+			"user_name": user.DisplayName,
+			"message": "Access Denied: Staff privileges required to access the admin panel.",
+		})
+		return
+	}
+
+	// User is staff, show admin page
+	c.HTML(200, "admin.html", gin.H{
+		"user_name": user.DisplayName,
+	})
+}
+
 func generateState() string {
 	b := make([]byte, 32)
 	rand.Read(b)

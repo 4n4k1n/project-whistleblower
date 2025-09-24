@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - 42 Whistleblower</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8">
+        <div class="text-center">
+            <div class="mx-auto h-12 w-12 text-red-600">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Access Denied
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                {{.message}}
+            </p>
+            {{if .user_name}}
+            <p class="mt-4 text-center text-sm text-gray-500">
+                Logged in as: <strong>{{.user_name}}</strong>
+            </p>
+            {{end}}
+        </div>
+        
+        <div class="space-y-4">
+            <div class="rounded-md shadow">
+                <a href="/dashboard" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Go to Dashboard
+                </a>
+            </div>
+            
+            <div class="rounded-md shadow">
+                <a href="/" class="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Go Home
+                </a>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <p class="text-xs text-gray-500">
+                Contact an administrator if you believe you should have access to this page.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

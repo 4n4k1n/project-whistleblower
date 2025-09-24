@@ -40,9 +40,7 @@ func main() {
 		c.HTML(200, "dashboard.html", gin.H{})
 	})
 
-	r.GET("/admin", func(c *gin.Context) {
-		c.HTML(200, "admin.html", gin.H{})
-	})
+	r.GET("/admin", h.AdminPage)
 
 	api := r.Group("/api")
 	{
