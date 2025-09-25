@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - 42 Whistleblower</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-semibold">42 Admin Panel</h1>
+                </div>
+                <div class="flex items-center">
+                    <a href="/dashboard" class="text-blue-600 hover:text-blue-800">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+            <!-- User Statistics -->
+            <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">User Statistics</h3>
+                    <div id="userStats" class="text-gray-600">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Project Reports -->
+            <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Most Reported Projects</h3>
+                    <div id="projectStats" class="text-gray-600">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Pending Reports -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Pending Reports</h3>
+                    <div id="pendingReports" class="text-gray-600">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserStats();
+            loadProjectStats();
+            loadPendingReports();
+        });
+
+        function loadUserStats() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.total_users !== undefined) {
+                        document.getElementById('userStats').innerHTML = 
+                            '<div class="text-2xl font-bold text-indigo-600">' + data.total_users + '</div>' +
+                            '<div class="text-sm text-gray-500">Total Users in Database</div>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('userStats').innerHTML = 
+                        '<div class="text-red-600">Error loading user statistics</div>';
+                });
+        }
+
+        function loadProjectStats() {
+            fetch('/api/staff/project-stats')
+                .then(response => response.json())
+                .then(data => {
+                    const statsDiv = document.getElementById('projectStats');
+                    
+                    if (data.projects && data.projects.length > 0) {
+                        var tableHTML = '<div class="overflow-x-auto">' +
+                            '<table class="min-w-full divide-y divide-gray-200">' +
+                            '<thead class="bg-gray-50"><tr>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Reports</th>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>' +
+                            '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
+                        
+                        data.projects.forEach(function(project) {
+                            var badgeClass = 'bg-blue-100 text-blue-800';
+                            if (project.report_count >= 5) {
+                                badgeClass = 'bg-red-100 text-red-800';
+                            } else if (project.report_count >= 3) {
+                                badgeClass = 'bg-yellow-100 text-yellow-800';
+                            }
+                            
+                            tableHTML += '<tr>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">' + project.project_name + '</td>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">' + project.student_login + '</td>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">' +
+                                '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + badgeClass + '">' +
+                                project.report_count + '</span></td>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">' +
+                                'Pending: ' + project.pending_count + ', Approved: ' + project.approved_count + ', Rejected: ' + project.rejected_count +
+                                '</td></tr>';
+                        });
+                        
+                        tableHTML += '</tbody></table></div>';
+                        statsDiv.innerHTML = tableHTML;
+                    } else {
+                        statsDiv.innerHTML = '<p class="text-gray-500">No project statistics available</p>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('projectStats').innerHTML = 
+                        '<div class="text-red-600">Error loading project statistics</div>';
+                });
+        }
+
+        function loadPendingReports() {
+            fetch('/api/staff/reports')
+                .then(response => response.json())
+                .then(data => {
+                    const reportsDiv = document.getElementById('pendingReports');
+                    
+                    if (data.reports && data.reports.length > 0) {
+                        var reportsHTML = '<div class="space-y-4">';
+                        
+                        data.reports.forEach(function(report) {
+                            reportsHTML += '<div class="border rounded-lg p-4 bg-gray-50">' +
+                                '<div class="flex justify-between items-start mb-2">' +
+                                '<div>' +
+                                '<h4 class="font-medium text-gray-900">' + report.project_name + '</h4>' +
+                                '<p class="text-sm text-gray-600">Student: ' + report.student_login + '</p>' +
+                                '<p class="text-sm text-gray-500">Reason: ' + report.reason + '</p>' +
+                                '</div>' +
+                                '<div class="flex space-x-2">' +
+                                '<button onclick="reviewReport(' + report.id + ', \'approved\')" ' +
+                                'class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600">Approve</button>' +
+                                '<button onclick="reviewReport(' + report.id + ', \'rejected\')" ' +
+                                'class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600">Reject</button>' +
+                                '</div></div>' +
+                                '<p class="text-sm text-gray-700 mt-2">' + (report.description || 'No description provided') + '</p>' +
+                                '</div>';
+                        });
+                        
+                        reportsHTML += '</div>';
+                        reportsDiv.innerHTML = reportsHTML;
+                    } else {
+                        reportsDiv.innerHTML = '<p class="text-gray-500">No pending reports</p>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('pendingReports').innerHTML = 
+                        '<div class="text-red-600">Error loading pending reports</div>';
+                });
+        }
+
+        function reviewReport(reportId, status) {
+            fetch('/api/staff/reports/' + reportId, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: status })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('Report ' + status + ' successfully');
+                    loadPendingReports(); // Reload pending reports
+                    loadProjectStats(); // Reload project stats
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                alert('Error processing report review');
+            });
+        }
+    </script>
+</body>
+</html>
