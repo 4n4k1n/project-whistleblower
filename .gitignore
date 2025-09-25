@@ -4,3 +4,4 @@ server.log
 whistleblower
 whistleblower.db
 *.log
+*.txt
