@@ -90,9 +90,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.total_users !== undefined) {
-                        document.getElementById('userStats').innerHTML = 
-                            `<div class="text-2xl font-bold text-indigo-600">${data.total_users}</div>
-                             <div class="text-sm text-gray-500">Total Users in Database</div>`;
+                        document.getElementById('userStats').innerHTML =
+                            '<div class="text-2xl font-bold text-indigo-600">' + data.total_users + '</div>' +
+                            '<div class="text-sm text-gray-500">Total Users in Database</div>';
                     }
                 })
                 .catch(error => {
@@ -105,106 +105,78 @@
             fetch('/api/staff/project-stats')
                 .then(response => response.json())
                 .then(data => {
-                    const statsDiv = document.getElementById('projectStats');
-                    
+                    var statsDiv = document.getElementById('projectStats');
+
                     if (data.projects && data.projects.length > 0) {
-                        statsDiv.innerHTML = `
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Project
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Student
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Total Reports
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Pending
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Approved
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Rejected
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        ${data.projects.map(project => `
-                                            <tr>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    ${project.project_name}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    ${project.student_login}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                        project.report_count >= 5 ? 'bg-red-100 text-red-800' : 
-                                                        project.report_count >= 3 ? 'bg-yellow-100 text-yellow-800' : 
-                                                        'bg-blue-100 text-blue-800'
-                                                    }">
-                                                        ${project.report_count}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    ${project.pending_count}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">
-                                                    ${project.approved_count}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">
-                                                    ${project.rejected_count}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    ${project.pending_count > 0 ? `
-                                                        <div class="flex space-x-2">
-                                                            <button onclick="bulkProjectAction('${project.student_login}', '${project.project_name}', 'approved')" 
-                                                                    class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                                                Approve All
-                                                            </button>
-                                                            <button onclick="bulkProjectAction('${project.student_login}', '${project.project_name}', 'rejected')" 
-                                                                    class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                                                Reject All
-                                                            </button>
-                                                        </div>
-                                                    ` : `
-                                                        <span class="text-gray-400 text-xs">No pending</span>
-                                                    `}
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        `;
+                        var tableHTML = '<div class="overflow-x-auto">' +
+                            '<table class="min-w-full divide-y divide-gray-200">' +
+                            '<thead class="bg-gray-50"><tr>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Reports</th>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending</th>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved</th>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rejected</th>' +
+                            '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>' +
+                            '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
+
+                        for (var i = 0; i < data.projects.length; i++) {
+                            var project = data.projects[i];
+                            var badgeClass = 'bg-blue-100 text-blue-800';
+                            if (project.report_count >= 5) {
+                                badgeClass = 'bg-red-100 text-red-800';
+                            } else if (project.report_count >= 3) {
+                                badgeClass = 'bg-yellow-100 text-yellow-800';
+                            }
+
+                            var actionsHtml = '';
+                            if (project.pending_count > 0) {
+                                actionsHtml = '<div class="flex space-x-2">' +
+                                    '<button onclick="bulkProjectAction(\'' + project.student_login + '\', \'' + project.project_name + '\', \'approved\')" ' +
+                                    'class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">' +
+                                    'Approve All</button>' +
+                                    '<button onclick="bulkProjectAction(\'' + project.student_login + '\', \'' + project.project_name + '\', \'rejected\')" ' +
+                                    'class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">' +
+                                    'Reject All</button></div>';
+                            } else {
+                                actionsHtml = '<span class="text-gray-400 text-xs">No pending</span>';
+                            }
+
+                            tableHTML += '<tr>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">' + project.project_name + '</td>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">' + project.student_login + '</td>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">' +
+                                '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + badgeClass + '">' +
+                                project.report_count + '</span></td>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">' + project.pending_count + '</td>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">' + project.approved_count + '</td>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">' + project.rejected_count + '</td>' +
+                                '<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">' + actionsHtml + '</td>' +
+                                '</tr>';
+                        }
+
+                        tableHTML += '</tbody></table></div>';
+                        statsDiv.innerHTML = tableHTML;
                     } else {
                         statsDiv.innerHTML = '<div class="text-gray-500">No project reports found</div>';
                     }
                 })
                 .catch(error => {
-                    document.getElementById('projectStats').innerHTML = 
+                    document.getElementById('projectStats').innerHTML =
                         '<div class="text-red-600">Error loading project statistics</div>';
                 });
         }
 
         function syncUsers() {
-            const campusId = document.getElementById('campusId').value;
-            const syncBtn = document.getElementById('syncBtn');
-            const resultDiv = document.getElementById('syncResult');
-            const messageDiv = document.getElementById('syncMessage');
+            var campusId = document.getElementById('campusId').value;
+            var syncBtn = document.getElementById('syncBtn');
+            var resultDiv = document.getElementById('syncResult');
+            var messageDiv = document.getElementById('syncMessage');
             
             syncBtn.disabled = true;
             syncBtn.innerHTML = 'Syncing...';
             
-            fetch(`/api/sync-users?campus_id=${campusId}`, {
+            fetch('/api/sync-users?campus_id=' + campusId, {
                 method: 'POST'
             })
             .then(response => response.json())
@@ -213,29 +185,29 @@
                 
                 if (data.message) {
                     messageDiv.className = 'p-3 rounded-md bg-green-50 border border-green-200';
-                    messageDiv.innerHTML = 
-                        `<div class="text-green-800">
-                            <strong>${data.message}</strong><br>
-                            <span class="text-sm">Users synced: ${data.count || 0}</span>
-                        </div>`;
-                    
+                    messageDiv.innerHTML =
+                        '<div class="text-green-800">' +
+                            '<strong>' + data.message + '</strong><br>' +
+                            '<span class="text-sm">Users synced: ' + (data.count || 0) + '</span>' +
+                        '</div>';
+
                     // Reload user stats
                     loadUserStats();
                 } else {
                     messageDiv.className = 'p-3 rounded-md bg-red-50 border border-red-200';
-                    messageDiv.innerHTML = 
-                        `<div class="text-red-800">
-                            <strong>Error:</strong> ${data.error || 'Unknown error'}
-                        </div>`;
+                    messageDiv.innerHTML =
+                        '<div class="text-red-800">' +
+                            '<strong>Error:</strong> ' + (data.error || 'Unknown error') +
+                        '</div>';
                 }
             })
             .catch(error => {
                 resultDiv.classList.remove('hidden');
                 messageDiv.className = 'p-3 rounded-md bg-red-50 border border-red-200';
-                messageDiv.innerHTML = 
-                    `<div class="text-red-800">
-                        <strong>Error:</strong> Failed to sync users
-                    </div>`;
+                messageDiv.innerHTML =
+                    '<div class="text-red-800">' +
+                        '<strong>Error:</strong> Failed to sync users' +
+                    '</div>';
             })
             .finally(() => {
                 syncBtn.disabled = false;
@@ -247,31 +219,34 @@
             fetch('/api/staff/reports')
                 .then(response => response.json())
                 .then(data => {
-                    const reportsDiv = document.getElementById('pendingReports');
+                    var reportsDiv = document.getElementById('pendingReports');
                     
                     if (data.reports && data.reports.length > 0) {
-                        reportsDiv.innerHTML = data.reports.map(report => 
-                            `<div class="border-b border-gray-200 py-4">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="font-medium">${report.reported_student_login} - ${report.project_name}</h4>
-                                        <p class="text-sm text-gray-600">Reason: ${report.reason}</p>
-                                        <p class="text-sm text-gray-500 mt-1">${report.explanation}</p>
-                                        <p class="text-xs text-gray-400 mt-2">Reported: ${new Date(report.created_at).toLocaleDateString()}</p>
-                                    </div>
-                                    <div class="flex space-x-2">
-                                        <button onclick="reviewReport(${report.id}, 'approved')" 
-                                                class="px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-md hover:bg-green-200">
-                                            Approve
-                                        </button>
-                                        <button onclick="reviewReport(${report.id}, 'rejected')" 
-                                                class="px-3 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-md hover:bg-red-200">
-                                            Reject
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>`
-                        ).join('');
+                        var reportsHTML = '';
+                        for (var i = 0; i < data.reports.length; i++) {
+                            var report = data.reports[i];
+                            reportsHTML += '<div class="border-b border-gray-200 py-4">' +
+                                '<div class="flex justify-between items-start">' +
+                                    '<div>' +
+                                        '<h4 class="font-medium">' + report.reported_student_login + ' - ' + report.project_name + '</h4>' +
+                                        '<p class="text-sm text-gray-600">Reason: ' + report.reason + '</p>' +
+                                        '<p class="text-sm text-gray-500 mt-1">' + report.explanation + '</p>' +
+                                        '<p class="text-xs text-gray-400 mt-2">Reported: ' + new Date(report.created_at).toLocaleDateString() + '</p>' +
+                                    '</div>' +
+                                    '<div class="flex space-x-2">' +
+                                        '<button onclick="reviewReport(' + report.id + ', \'approved\')" ' +
+                                                'class="px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-md hover:bg-green-200">' +
+                                            'Approve' +
+                                        '</button>' +
+                                        '<button onclick="reviewReport(' + report.id + ', \'rejected\')" ' +
+                                                'class="px-3 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-md hover:bg-red-200">' +
+                                            'Reject' +
+                                        '</button>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>';
+                        }
+                        reportsDiv.innerHTML = reportsHTML;
                     } else {
                         reportsDiv.innerHTML = '<div class="text-gray-500">No pending reports</div>';
                     }
@@ -304,7 +279,8 @@
         }
 
         function bulkProjectAction(studentLogin, projectName, status) {
-            if (!confirm(`Are you sure you want to ${status === 'approved' ? 'approve' : 'reject'} ALL pending reports for ${studentLogin} - ${projectName}?`)) {
+            var action = status === 'approved' ? 'approve' : 'reject';
+            if (!confirm('Are you sure you want to ' + action + ' ALL pending reports for ' + studentLogin + ' - ' + projectName + '?')) {
                 return;
             }
 
