@@ -18,7 +18,13 @@ func main() {
 
 	auth.InitOAuth()
 
-	db, err := database.NewDatabase("whistleblower.db")
+	// Get database path from environment or use default
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "whistleblower.db"
+	}
+	
+	db, err := database.NewDatabase(dbPath)
 	if err != nil {
 		log.Fatal("Failed to initialize database:", err)
 	}

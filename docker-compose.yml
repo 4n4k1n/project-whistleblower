@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  whistleblower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - GIN_MODE=release
+      - DB_PATH=/app/data/whistleblower.db
+      - OAUTH_42_CLIENT_ID=${OAUTH_42_CLIENT_ID}
+      - OAUTH_42_CLIENT_SECRET=${OAUTH_42_CLIENT_SECRET}
+      - OAUTH_42_REDIRECT_URL=${OAUTH_42_REDIRECT_URL}
+      - PORT=8080
+    volumes:
+      - whistleblower_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - db-init
+    networks:
+      - whistleblower-network
+
+  db-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - whistleblower_data:/app/data
+    command: >
+      sh -c "
+        if [ ! -f /app/data/whistleblower.db ]; then
+          echo 'Initializing database...';
+          sqlite3 /app/data/whistleblower.db < /app/database/schema.sql;
+          echo 'Database initialized successfully';
+        else
+          echo 'Database already exists, skipping initialization';
+        fi
+      "
+    networks:
+      - whistleblower-network
+
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - whistleblower
+    restart: unless-stopped
+    networks:
+      - whistleblower-network
+
+volumes:
+  whistleblower_data:
+    driver: local
+
+networks:
+  whistleblower-network:
+    driver: bridge
