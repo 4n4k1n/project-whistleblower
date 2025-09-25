@@ -49,11 +49,19 @@ func (h *Handler) Callback(c *gin.Context) {
 		return
 	}
 
+	// Check if user already exists to preserve admin rights
+	existingUser, err := h.db.GetUserByLogin(auth42User.Login)
+
 	user := &models.User{
 		Login:       auth42User.Login,
 		Email:       auth42User.Email,
 		DisplayName: auth42User.DisplayName,
-		IsStaff:     false,
+		IsStaff:     false, // Default for new users
+	}
+
+	// Preserve existing admin rights if user already exists
+	if err == nil && existingUser != nil {
+		user.IsStaff = existingUser.IsStaff
 	}
 
 	if err := h.db.CreateUser(user); err != nil {
